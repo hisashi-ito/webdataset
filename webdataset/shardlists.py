@@ -187,7 +187,8 @@ class PytorchEnv:
         """smdistributed.dataparallel.torch.distributed を利用してupdate_env と同じ動作を実現"""
         from . import gopen
         
-        print("update_sm_env(")
+        print("update_sm_env")
+        print("before self.rank: {}".format(self.rank))
 
         try:
             import torch
@@ -202,10 +203,14 @@ class PytorchEnv:
                     group=group
                 )
 
+        print("after self.rank: {}".format(self.rank)) 
+
         if self.worker is None:
             worker_info = torch.utils.data.get_worker_info()
             if worker_info is not None:
                 self.worker = worker_info.id, worker_info.num_workers
+
+        print("self.worker: {} myrank: {}".format(self.worker, self.rank))
 
         gopen.info["nodeinfo"] = self.nodeinfo
         gopen.info["rank"], gopen.info["size"] = self.rank or (-1, -1)
