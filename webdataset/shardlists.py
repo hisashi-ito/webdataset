@@ -76,6 +76,9 @@ def split_by_node_sm(src, group=None):
         group = group or dist.group.WORLD
         rank = dist.get_rank(group=group)
         size = dist.get_world_size(group=group)
+
+        print("split_by_node_sm")
+
         for s in islice(src, rank, None, size):
             yield s
     else:
@@ -184,6 +187,8 @@ class PytorchEnv:
         """smdistributed.dataparallel.torch.distributed を利用してupdate_env と同じ動作を実現"""
         from . import gopen
         
+        print("update_sm_env(")
+
         try:
             import torch
             import smdistributed.dataparallel.torch.distributed as dist
@@ -325,6 +330,8 @@ class PytorchShardList(IterableDataset, PytorchEnv, Composable):
         PytorchEnv.__init__(self, sagemaker=sagemaker)
         Composable.__init__(self)
         # super().__init__()
+
+        print("PytorchShardList sagemaker: {}".format(sagemaker))
         
         self.verbose = verbose
         if self.verbose:
