@@ -227,6 +227,7 @@ class SimpleShardSample(ShardSample):
             urls = list(braceexpand.braceexpand(urls))
         else:
             urls = list(urls)
+        urls.sort()
         self.urls = list(urls)
         assert isinstance(self.urls[0], str)
 
@@ -349,8 +350,6 @@ class PytorchShardList(IterableDataset, PytorchEnv, Composable):
         self.split_by_node = split_by_node_sm if sagemaker else split_by_node
         if not isinstance(urls, ShardSample):
             urls = SimpleShardSample(urls)
-        # sort する
-        urls.sort()
         self.shardsample = urls
         
         print("PytorchShardList shardsample (urls): {}, myrank: {}".format(urls, self.rank))
