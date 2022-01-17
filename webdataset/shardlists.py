@@ -216,7 +216,7 @@ class SimpleShardSample(ShardSample):
             urls = list(braceexpand.braceexpand(urls))
         else:
             urls = list(urls)
-        # multi-nodeの場合の`urls`の配列が異なるので`sort`しておく    
+        # multi-node の場合の`urls`の配列が異なるので`sort`しておく    
         urls.sort()
         self.urls = list(urls)
         assert isinstance(self.urls[0], str)
@@ -338,7 +338,7 @@ class PytorchShardList(IterableDataset, PytorchEnv, Composable):
         if not isinstance(urls, ShardSample):
             urls = SimpleShardSample(urls)
         self.shardsample = urls
-            
+        
     def set_epoch(self, epoch):
         """Set the current epoch. Used for per-node shuffling."""
         self.epoch = epoch - 1
@@ -356,7 +356,9 @@ class PytorchShardList(IterableDataset, PytorchEnv, Composable):
             self.update_env()
 
         urls = self.shardsample.sample()
-                
+
+        print("PytorchShardList urls: {}, myrank: {}".format(urls, self.rank))
+        
         if self.epoch_shuffle:
             if "WDS_EPOCH" not in os.environ:
                 raise ValueError(
@@ -381,6 +383,9 @@ class PytorchShardList(IterableDataset, PytorchEnv, Composable):
             random.Random(self.epoch + 17).shuffle(urls)
         if self.verbose:
             print(f"PytorchShardList got {len(urls)} urls")
+
+        #print("PytorchShardList urls: {}, myrank: {}".format(urls))
+            
         for url in urls:
             yield dict(
                 url=url,
