@@ -347,8 +347,8 @@ class PytorchShardList(IterableDataset, PytorchEnv, Composable):
         self.shuffle = shuffle
         self.split_by_worker = split_by_worker
         self.split_by_node = split_by_node_sm if sagemaker else split_by_node
-        if not isinstance(urls, ShardSample):
-            urls = SimpleShardSample(urls)
+        #if not isinstance(urls, ShardSample):
+        #    urls = SimpleShardSample(urls)
         self.shardsample = urls
 
         print("PytorchShardList shardsample (urls): {}, myrank: {}".format(urls, self.rank))
