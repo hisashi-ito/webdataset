@@ -351,6 +351,10 @@ class PytorchShardList(IterableDataset, PytorchEnv, Composable):
             urls = SimpleShardSample(urls)
         self.shardsample = urls
 
+        print("PytorchShardList shardsample (urls): {}, myrank: {}".format(urls, self.rank))
+        print("PytorchShardList shuffle: {}".format(self.shuffle))
+        print("PytorchShardList shardsample: {}  rank: {}".format(urls, self.rank))
+        
     def set_epoch(self, epoch):
         """Set the current epoch. Used for per-node shuffling."""
         self.epoch = epoch - 1
@@ -368,6 +372,8 @@ class PytorchShardList(IterableDataset, PytorchEnv, Composable):
             self.update_env()
 
         urls = self.shardsample.sample()
+        print("PytorchShardList urls: {}  rank: {}".format(urls, self.rank))
+        
         if self.epoch_shuffle:
             if "WDS_EPOCH" not in os.environ:
                 raise ValueError(
@@ -382,6 +388,9 @@ class PytorchShardList(IterableDataset, PytorchEnv, Composable):
             if self.verbose:
                 print(f"PytorchShardList rank {rank} of {world}")
             urls = urls[rank::world]
+
+            print("PytorchShardList split_by_node: {}  rank: {}".format(urls, self.rank))
+            
         if self.split_by_worker:
             worker, nworkers = self.worker or (0, 1)
             if self.verbose:
