@@ -335,8 +335,9 @@ class PytorchShardList(IterableDataset, PytorchEnv, Composable):
         PytorchEnv.__init__(self, sagemaker=sagemaker)
         Composable.__init__(self)
         # super().__init__()
-
+        
         print("PytorchShardList sagemaker: {}".format(sagemaker))
+        self.sagemaker = sagemaker
         
         self.verbose = verbose
         if self.verbose:
@@ -359,7 +360,13 @@ class PytorchShardList(IterableDataset, PytorchEnv, Composable):
         self.epoch += 1
         if hasattr(self.shardsample, "set_epoch"):
             self.shardsample.set_epoch(self.epoch)
-        self.update_env()
+
+        # sagemaker フラグで切り替え
+        if self.sagemaker:
+            self.update_sm_env()
+        else:
+            self.update_env()
+
         urls = self.shardsample.sample()
         if self.epoch_shuffle:
             if "WDS_EPOCH" not in os.environ:
