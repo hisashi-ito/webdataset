@@ -347,10 +347,12 @@ class PytorchShardList(IterableDataset, PytorchEnv, Composable):
         self.shuffle = shuffle
         self.split_by_worker = split_by_worker
         self.split_by_node = split_by_node_sm if sagemaker else split_by_node
-        #if not isinstance(urls, ShardSample):
-        #    urls = SimpleShardSample(urls)
+        if not isinstance(urls, ShardSample):
+            urls = SimpleShardSample(urls)
+        # sort する
+        urls.sort()
         self.shardsample = urls
-
+        
         print("PytorchShardList shardsample (urls): {}, myrank: {}".format(urls, self.rank))
         print("PytorchShardList shuffle: {}".format(self.shuffle))
         print("PytorchShardList shardsample: {}  rank: {}".format(urls, self.rank))
@@ -372,6 +374,7 @@ class PytorchShardList(IterableDataset, PytorchEnv, Composable):
             self.update_env()
 
         urls = self.shardsample.sample()
+        
         print("PytorchShardList urls: {}  rank: {}".format(urls, self.rank))
         
         if self.epoch_shuffle:
