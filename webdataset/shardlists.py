@@ -76,9 +76,6 @@ def split_by_node_sm(src, group=None):
         group = group or dist.group.WORLD
         rank = dist.get_rank(group=group)
         size = dist.get_world_size(group=group)
-
-        print("split_by_node_sm")
-
         for s in islice(src, rank, None, size):
             yield s
     else:
@@ -186,10 +183,6 @@ class PytorchEnv:
     def update_sm_env(self):
         """smdistributed.dataparallel.torch.distributed を利用してupdate_env と同じ動作を実現"""
         from . import gopen
-        
-        print("update_sm_env")
-        print("before self.rank: {}".format(self.rank))
-
         try:
             import torch
             import smdistributed.dataparallel.torch.distributed as dist
@@ -203,14 +196,10 @@ class PytorchEnv:
                     group=group
                 )
 
-        print("after self.rank: {}".format(self.rank)) 
-
         if self.worker is None:
             worker_info = torch.utils.data.get_worker_info()
             if worker_info is not None:
                 self.worker = worker_info.id, worker_info.num_workers
-
-        print("self.worker: {} myrank: {}".format(self.worker, self.rank))
 
         gopen.info["nodeinfo"] = self.nodeinfo
         gopen.info["rank"], gopen.info["size"] = self.rank or (-1, -1)
@@ -227,6 +216,7 @@ class SimpleShardSample(ShardSample):
             urls = list(braceexpand.braceexpand(urls))
         else:
             urls = list(urls)
+        # multi-nodeの場合の`urls`の配列が異なるので`sort`しておく    
         urls.sort()
         self.urls = list(urls)
         assert isinstance(self.urls[0], str)
@@ -336,10 +326,7 @@ class PytorchShardList(IterableDataset, PytorchEnv, Composable):
         PytorchEnv.__init__(self, sagemaker=sagemaker)
         Composable.__init__(self)
         # super().__init__()
-        
-        print("PytorchShardList sagemaker: {}".format(sagemaker))
         self.sagemaker = sagemaker
-        
         self.verbose = verbose
         if self.verbose:
             print("PytorchShardList init")
@@ -351,11 +338,7 @@ class PytorchShardList(IterableDataset, PytorchEnv, Composable):
         if not isinstance(urls, ShardSample):
             urls = SimpleShardSample(urls)
         self.shardsample = urls
-        
-        print("PytorchShardList shardsample (urls): {}, myrank: {}".format(urls, self.rank))
-        print("PytorchShardList shuffle: {}".format(self.shuffle))
-        print("PytorchShardList shardsample: {}  rank: {}".format(urls, self.rank))
-        
+            
     def set_epoch(self, epoch):
         """Set the current epoch. Used for per-node shuffling."""
         self.epoch = epoch - 1
@@ -373,9 +356,7 @@ class PytorchShardList(IterableDataset, PytorchEnv, Composable):
             self.update_env()
 
         urls = self.shardsample.sample()
-        
-        print("PytorchShardList urls: {}  rank: {}".format(urls, self.rank))
-        
+                
         if self.epoch_shuffle:
             if "WDS_EPOCH" not in os.environ:
                 raise ValueError(
@@ -390,8 +371,6 @@ class PytorchShardList(IterableDataset, PytorchEnv, Composable):
             if self.verbose:
                 print(f"PytorchShardList rank {rank} of {world}")
             urls = urls[rank::world]
-
-            print("PytorchShardList split_by_node: {}  rank: {}".format(urls, self.rank))
             
         if self.split_by_worker:
             worker, nworkers = self.worker or (0, 1)
