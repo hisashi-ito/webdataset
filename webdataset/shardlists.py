@@ -127,9 +127,8 @@ def non_empty(src):
 
 class PytorchEnv:
     """A class encapsulating the PyTorch node/worker environment.
-      
        2021.12.24
-       sagemaker の smdistributedを利用できるようにオプションを追加
+       sagemaker の smdistributed を利用できるようにオプションを追加
     """
     
     def __init__(self, group=None, sagemaker=False):
@@ -216,7 +215,7 @@ class SimpleShardSample(ShardSample):
             urls = list(braceexpand.braceexpand(urls))
         else:
             urls = list(urls)
-        # multi-node の場合の`urls`の配列が異なるので`sort`しておく    
+        # [重要] multi-node の場合の`urls`の配列の順番が異なるので`sort`しておく    
         urls.sort()
         self.urls = list(urls)
         assert isinstance(self.urls[0], str)
@@ -356,8 +355,6 @@ class PytorchShardList(IterableDataset, PytorchEnv, Composable):
             self.update_env()
 
         urls = self.shardsample.sample()
-
-        print("PytorchShardList urls: {}, myrank: {}".format(urls, self.rank))
         
         if self.epoch_shuffle:
             if "WDS_EPOCH" not in os.environ:
@@ -384,8 +381,6 @@ class PytorchShardList(IterableDataset, PytorchEnv, Composable):
         if self.verbose:
             print(f"PytorchShardList got {len(urls)} urls")
 
-        #print("PytorchShardList urls: {}, myrank: {}".format(urls))
-            
         for url in urls:
             yield dict(
                 url=url,
